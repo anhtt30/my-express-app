@@ -14,7 +14,7 @@ mongoose.connect('mongodb://localhost:27017/express', {
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.error('MongoDB connection error:', err));
 
-// Example schema
+// Example schema 123
 const UserSchema = new mongoose.Schema({
   name: String,
   age: Number
