@@ -24,7 +24,7 @@ const User = mongoose.model('User', UserSchema);
 
 // Sample route
 app.get('/api/hello', (req, res) => {
-    // response with json 123 sdfdsfdsfdsfsddsf
+    // response with json 123 sdfdsfdsfdsfsddsfsdfsdf
   res.json({ message: 'Hello from Express123!' });
 });
 
