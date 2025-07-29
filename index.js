@@ -28,7 +28,7 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: 'Hello from Express123!' });
 });
 
-// Sample route
+// Sample route olala
 app.get('/api/users', async (req, res) => {
   const users = await User.find();
   res.json(users);
