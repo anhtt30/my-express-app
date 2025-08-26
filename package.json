@@ -10,10 +10,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "allo haha hoho test sdfsdf test234234 sdfasdfsdf heloo",
   "dependencies": {
     "express": "^5.1.0",
-    "mongoose": "^8.16.1"
+    "mongoose": "^8.16.1",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
