@@ -39,11 +39,13 @@ class Question {
   }
 
   // Get all questions
-  static all(page, itemsPerPage, callback) {
+  static all(page, itemsPerPage, searchContent, callback) {
     const db = this.db();
     const offset = (page - 1) * itemsPerPage;
-
-    db.all(`SELECT * FROM question ORDER BY question_no ASC LIMIT ? OFFSET ?`, [itemsPerPage, offset], (err, rows) => {
+    const searchParam = typeof searchContent != 'undefined'
+      && searchContent !== null && searchContent !== '' ? ' AND content LIKE \'%' + searchContent + '%\' ' : '';
+    let query = `SELECT * FROM question WHERE 1=1 ${searchParam} ORDER BY question_no ASC LIMIT ? OFFSET ?`;
+    db.all(query, [itemsPerPage, offset], (err, rows) => {
       if (err) return callback(err);
       const questions = [];
       let pending = rows.length;
@@ -71,9 +73,12 @@ class Question {
     });
   }
 
-  static count(callback) {
+  static count(searchContent, callback) {
     const db = this.db();
-    db.get(`SELECT COUNT(*) as count FROM question`, (err, row) => {
+    const searchParam = typeof searchContent != 'undefined'
+      && searchContent !== null && searchContent !== '' ? ' AND content LIKE \'%' + searchContent + '%\' ' : '';
+    let query = `SELECT COUNT(*) as count FROM question WHERE 1=1 ${searchParam}`;
+    db.get(query, (err, row) => {
       if (err) return callback(err);
       callback(null, row.count);
     });

@@ -48,9 +48,9 @@ app.get('/api/users', async (req, res) => {
 // Get all questions
 app.get("/api/questions", (req, res) => {
   const itemsPerPage = 20;
-  Question.all(req.query.page ?? 1, itemsPerPage, (err, questions) => {
+  Question.all(req.query.page ?? 1, itemsPerPage, req.query.searchParam, (err, questions) => {
     if (err) return res.status(500).json({ error: err.message });
-    Question.count((err, count) => {
+    Question.count(req.query.searchParam, (err, count) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json(
         { 
