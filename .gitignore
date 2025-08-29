@@ -28,7 +28,7 @@ Thumbs.db
 coverage/
 
 # Build output (if using bundlers or transpilers)
-dist/
+#dist/
 build/
 
 # PM2 logs and dumps
