@@ -5,13 +5,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start-pi": "node App.js",
+    "dev": "nodemon App.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "allo haha hoho test sdfsdf test234234 sdfasdfsdf heloo",
   "dependencies": {
+    "better-sqlite3": "^12.2.0",
     "express": "^5.1.0",
     "mongoose": "^8.16.1",
     "sqlite3": "^5.1.7"

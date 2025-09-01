@@ -1,4 +1,4 @@
-const sqlite3 = require("sqlite3").verbose();
+const Database = require('better-sqlite3');
 const Answer = require("./Answer");
 const QuestionChoice = require("./QuestionChoice");
 const VotingAnswer  = require("./VotingAnswer");
@@ -20,7 +20,7 @@ class Question {
   // Open DB connection (singleton pattern)
   static db() {
     if (!this._db) {
-      this._db = new sqlite3.Database("./exam.db");
+      this._db = new Database("./exam.db");
     }
     return this._db;
   }
@@ -39,90 +39,88 @@ class Question {
   }
 
   // Get all questions
-  static all(page, itemsPerPage, searchContent, callback) {
+  static all(page, itemsPerPage, searchContent) {
     const db = this.db();
     const offset = (page - 1) * itemsPerPage;
     const searchParam = typeof searchContent != 'undefined'
       && searchContent !== null && searchContent !== '' ? ' AND content LIKE \'%' + searchContent + '%\' ' : '';
     let query = `SELECT * FROM question WHERE 1=1 ${searchParam} ORDER BY question_no ASC LIMIT ? OFFSET ?`;
-    db.all(query, [itemsPerPage, offset], (err, rows) => {
-      if (err) return callback(err);
+    console.log('Query:', query);
+    try {
+      const rows = db.prepare(query).all(itemsPerPage, offset);
       const questions = [];
-      let pending = rows.length;
-      if (pending === 0) return callback(null, questions); // No questions found
-      rows.forEach((r, idx) => {
-        Answer.find(r.id, (err, answer) => {
-          if (err) return callback(err);
-          QuestionChoice.find(r.id, (err, questionChoices) => {
-            if (err) return callback(err);
-            VotingAnswer.find(r.id, (err, votingAnswers) => {
-              if (err) return callback(err);
-              QuestionImage.find(r.id, (err, questionImages) => {
-                if (err) return callback(err);
-                questions[idx] = new Question(r.id, r.question_no, r.content, r.examCode, r.source_url, answer, questionChoices, votingAnswers, questionImages);
-                if (--pending === 0) {
-                  callback(null, questions);
-                }
-              });
-            });
-          });
-        });
-      });
-    });
+      for (const r of rows) {
+        // Synchronously fetch related data using better-sqlite3
+        const answer = Answer.find ? Answer.find(r.id) : null;
+        const questionChoices = QuestionChoice.find ? QuestionChoice.find(r.id) : [];
+        const votingAnswers = VotingAnswer.find ? VotingAnswer.find(r.id) : [];
+        const questionImages = QuestionImage.find ? QuestionImage.find(r.id) : [];
+        questions.push(new Question(
+          r.id,
+          r.question_no,
+          r.content,
+          r.examCode,
+          r.source_url,
+          answer,
+          questionChoices,
+          votingAnswers,
+          questionImages
+        ));
+      }
+      return questions;
+    } catch (err) {
+      return [];
+    }
   }
 
-  static count(searchContent, callback) {
+  static count(searchContent) {
     const db = this.db();
     const searchParam = typeof searchContent != 'undefined'
       && searchContent !== null && searchContent !== '' ? ' AND content LIKE \'%' + searchContent + '%\' ' : '';
     let query = `SELECT COUNT(*) as count FROM question WHERE 1=1 ${searchParam}`;
-    db.get(query, (err, row) => {
-      if (err) return callback(err);
-      callback(null, row.count);
-    });
+    try {
+      const row = db.prepare(query).get();
+      return row.count;
+    } catch (err) {
+      return 0;
+    }
   }
 
   // Find by ID
-  static find(id, callback) {
+  static find(id) {
     const db = this.db();
-    db.get(`SELECT * FROM question WHERE id = ?`, [id], (err, row) => {
-      if (err) return callback(err);
-      if (!row) return callback(null, null);
-      Answer.find(row.id, (err, answer) => {
-        if (err) return callback(err);
-        QuestionChoice.find(row.id, (err, questionChoices) => {
-          if (err) return callback(err);
-          VotingAnswer.find(row.id, (err, votingAnswers) => {
-            if (err) return callback(err);
-            QuestionImage.find(row.id, (err, questionImages) => {
-              if (err) return callback(err);
-              callback(null, new Question(row.id, row.question_no, row.content, row.examCode , row.source_url, answer, questionChoices, votingAnswers, questionImages));
-            });
-          });
-        });
-      });
-    });
-  }
+    try {
+      const row = db.prepare(`SELECT * FROM question WHERE id = ?`).get(id);
+      if (!row) return null;
+      const answer = Answer.find(row.id);
+      const questionChoices = QuestionChoice.find(row.id);
+      const votingAnswers = VotingAnswer.find(row.id);
+      const questionImages = QuestionImage.find(row.id);
+      return new Question(row.id, row.question_no, row.content, row.examCode, row.source_url, answer, questionChoices, votingAnswers, questionImages);
+    } catch (err) {
+      return null;
+    }
+  }     
 
   // Update
-  update(callback) {
+  update() {
     const db = Question.db();
     db.run(
       `UPDATE question SET text = ?, answer = ? WHERE id = ?`,
       [this.text, this.answer, this.id],
       function (err) {
-        if (err) return callback(err);
-        callback(null, true);
+        if (err) return false;
+        return true;
       }
     );
   }
 
   // Delete
-  delete(callback) {
+  delete() {
     const db = Question.db();
     db.run(`DELETE FROM question WHERE id = ?`, [this.id], function (err) {
-      if (err) return callback(err);
-      callback(null, true);
+      if (err) return false;
+      return true;
     });
   }
 }
