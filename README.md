@@ -1,9 +1,3 @@
 # my-express-app
-allo
-haha
-hoho
-test
-sdfsdf
-test234234
-sdfasdfsdf
-heloo
+run "npm start-pi" to run on pi
+run "npm start" to run on ubuntu
